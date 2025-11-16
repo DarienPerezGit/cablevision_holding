@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendedor - CyberVision Holding</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    
+    <script src="js/models.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/holding-api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/vendedor-crud.js"></script>
+    <style>
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: var(--cyber-gray);
+        border-radius: 8px;
+        border: 1px solid var(--border-blue);
+    }
+    
+    .info-item label {
+        font-weight: 600;
+        color: var(--cyber-blue);
+        min-width: 200px;
+        margin: 0;
+    }
+    
+    .info-item span {
+        color: var(--text-light);
+        flex: 1;
+        text-align: right;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    </style>
+    
+    <script>
+    // ===== VALIDACIÓN DE SEGURIDAD =====
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Inicializando dashboard vendedor...');
+        
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        
+        if (!currentUser || currentUser.role !== 'vendedor') {
+            alert('❌ Acceso denegado. Solo para vendedores.');
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Asegurar que los modelos estén inicializados
+        if (typeof inicializarModelos === 'function') {
+            inicializarModelos();
+            console.log("✅ Modelos inicializados para vendedor");
+        }
+        
+        // Configurar navegación
+        setupNavigation();
+        
+        // Cargar datos del vendedor después de un breve delay
+        setTimeout(() => {
+            cargarDatosVendedor(currentUser);
+        }, 1000);
+        
+        // Cargar sección por defecto
+        loadSectionContent('#dashboard');
+    });
+    
+    // ===== NAVEGACIÓN =====
+    function setupNavigation() {
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+        
+        const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', handleNavigation);
+        });
+    }
+    
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('active');
+    }
+    
+    function handleNavigation(e) {
+        e.preventDefault();
+        const target = e.currentTarget.getAttribute('href');
+        const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+        
+        navLinks.forEach(link => link.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        
+        loadSectionContent(target);
+    }
+    
+    function loadSectionContent(section) {
+        const contentTitle = document.getElementById('contentTitle');
+        const mainContent = document.getElementById('mainContent');
+        
+        if (!mainContent) return;
+        
+        switch(section) {
+            case '#mis-datos':
+                contentTitle.textContent = 'Mis Datos Personales';
+                loadMisDatosContent(mainContent);
+                break;
+            case '#mi-red':
+                contentTitle.textContent = 'Mi Red de Vendedores';
+                loadMiRedContent(mainContent);
+                break;
+            case '#mi-empresa':
+                contentTitle.textContent = 'Mi Empresa';
+                loadMiEmpresaContent(mainContent);
+                break;
+            case '#dashboard':
+            default:
+                contentTitle.textContent = 'Mi Dashboard';
+                loadDashboardContent(mainContent);
+        }
+    }
+    
+    // ===== SECCIONES DE CONTENIDO =====
+    function loadDashboardContent(container = null) {
+        const targetContainer = container || document.getElementById('mainContent');
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        
+        targetContainer.innerHTML = `
+            <section class="stats-section">
+                <div class="row g-4">
+                    <div class="col-xl-4 col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-icon vendedor">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="captaciones-count">0</h3>
+                                <p>Vendedores Captados</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-icon facturacion">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="facturacion-total">$0</h3>
+                                <p>Mi Facturación</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-icon asesor">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="empresa-name">-</h3>
+                                <p>Mi Empresa</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-network-wired me-2"></i>Mi Red de Vendedores</h4>
+                            <span class="badge bg-primary" id="nivel-actual">Nivel 1</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="mi-red-container">
+                                <div class="empty-state">
+                                    <i class="fas fa-users"></i>
+                                    <p>Cargando datos de red...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            cargarDatosVendedor(currentUser);
+        }, 100);
+    }
+    
+    function loadMisDatosContent(container = null) {
+        const targetContainer = container || document.getElementById('mainContent');
+        
+        targetContainer.innerHTML = `
+            <div class="row">
+                <div class="col-12">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-user me-2"></i>Mis Datos Personales</h4>
+                        </div>
+                        <div class="card-body">
+                            <div id="mis-datos-detalle-container">
+                                <div class="empty-state">
+                                    <i class="fas fa-user"></i>
+                                    <p>Cargando datos personales...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        setTimeout(() => {
+            cargarMisDatosDetalle(currentUser);
+        }, 100);
+    }
+    
+    function loadMiRedContent(container = null) {
+        const targetContainer = container || document.getElementById('mainContent');
+        
+        targetContainer.innerHTML = `
+            <div class="row">
+                <div class="col-12">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-network-wired me-2"></i>Mi Red Completa</h4>
+                            <span class="badge bg-primary" id="nivel-red">Nivel 1</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="red-completa-container">
+                                <div class="empty-state">
+                                    <i class="fas fa-sitemap"></i>
+                                    <p>Cargando red completa...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        setTimeout(() => {
+            cargarMiRedCompleta(currentUser);
+        }, 100);
+    }
+    
+    function loadMiEmpresaContent(container = null) {
+        const targetContainer = container || document.getElementById('mainContent');
+        
+        targetContainer.innerHTML = `
+            <div class="row">
+                <div class="col-12">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-building me-2"></i>Información de Mi Empresa</h4>
+                        </div>
+                        <div class="card-body">
+                            <div id="empresa-info-container">
+                                <div class="empty-state">
+                                    <i class="fas fa-building"></i>
+                                    <p>Cargando información de empresa...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        setTimeout(() => {
+            cargarMiEmpresaInfo(currentUser);
+        }, 100);
+    }
+    
+    // ===== FUNCIONES DE CARGA DE DATOS MEJORADAS =====
+    function cargarDatosVendedor(currentUser) {
+        console.log('👤 Buscando datos del vendedor:', currentUser.username);
+        
+        if (typeof storageService === 'undefined') {
+            console.error('❌ storageService no está disponible');
+            mostrarDatosEjemplo();
+            return;
+        }
+        
+        try {
+            const vendedores = storageService.obtenerVendedores();
+            const empresas = storageService.obtenerEmpresasExtended();
+            const captaciones = storageService.obtenerCaptaciones();
+            
+            console.log('📊 Datos disponibles:');
+            console.log('- Vendedores:', vendedores.length);
+            console.log('- Empresas:', empresas.length);
+            console.log('- Captaciones:', captaciones.length);
+            
+            // Buscar vendedor por username
+            let vendedor = vendedores.find(v => v.username === currentUser.username);
+            
+            if (!vendedor) {
+                console.log('⚠️ No encontrado por username, buscando por código...');
+                // Intentar buscar por código si el username no funciona
+                vendedor = vendedores.find(v => v.codigo === currentUser.username);
+            }
+            
+            if (vendedor) {
+                console.log('✅ Vendedor encontrado:', vendedor);
+                
+                // Actualizar UI
+                actualizarElemento('username-placeholder', vendedor.nombre);
+                actualizarElemento('header-username', vendedor.nombre);
+                document.title = `Vendedor - ${vendedor.nombre}`;
+                
+                // Obtener empresa
+                const empresa = empresas.find(e => e.id === vendedor.empresaId);
+                console.log('🏢 Empresa encontrada:', empresa);
+                
+                // Calcular estadísticas
+                const misCaptaciones = captaciones.filter(c => c.captadorId === vendedor.codigo);
+                const nivel = storageService.calcularNivelVendedor(vendedor.codigo);
+                
+                console.log('📈 Estadísticas calculadas:', {
+                    captaciones: misCaptaciones.length,
+                    nivel: nivel,
+                    empresa: empresa ? empresa.nombre : 'No asignada'
+                });
+                
+                // Actualizar estadísticas
+                actualizarElemento('captaciones-count', misCaptaciones.length);
+                actualizarElemento('facturacion-total', calcularFacturacionVendedor(misCaptaciones));
+                actualizarElemento('empresa-name', empresa ? empresa.nombre : 'No asignada');
+                actualizarElemento('nivel-actual', `Nivel ${nivel}`);
+                
+                // Cargar red
+                cargarMiRed(vendedor.codigo);
+                
+            } else {
+                console.error('❌ Vendedor no encontrado en la base de datos');
+                console.log('👥 Vendedores disponibles:', vendedores.map(v => ({ 
+                    codigo: v.codigo, 
+                    nombre: v.nombre, 
+                    username: v.username 
+                })));
+                mostrarDatosEjemplo();
+            }
+            
+        } catch (error) {
+            console.error('❌ Error al cargar datos del vendedor:', error);
+            mostrarDatosEjemplo();
+        }
+    }
+    
+    function cargarMisDatosDetalle(currentUser) {
+        try {
+            const vendedores = storageService.obtenerVendedores();
+            const empresas = storageService.obtenerEmpresasExtended();
+            const captaciones = storageService.obtenerCaptaciones();
+            
+            const vendedor = vendedores.find(v => v.username === currentUser.username) || 
+                            vendedores.find(v => v.codigo === currentUser.username);
+            
+            if (vendedor) {
+                const empresa = empresas.find(e => e.id === vendedor.empresaId);
+                const miCaptadorId = captaciones.find(c => c.captadoId === vendedor.codigo)?.captadorId;
+                const vendedoresAll = storageService.obtenerVendedores();
+                const miCaptador = vendedoresAll.find(v => v.codigo === miCaptadorId);
+                const nivel = storageService.calcularNivelVendedor(vendedor.codigo);
+                const misCaptaciones = captaciones.filter(c => c.captadorId === vendedor.codigo);
+                
+                const container = document.getElementById('mis-datos-detalle-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="info-item">
+                            <label><i class="fas fa-id-card me-2"></i>Código:</label>
+                            <span>${vendedor.codigo}</span>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-user me-2"></i>Nombre:</label>
+                            <span>${vendedor.nombre}</span>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-building me-2"></i>Empresa:</label>
+                            <span>${empresa ? empresa.nombre : 'No asignada'}</span>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-user-tie me-2"></i>Captador:</label>
+                            <span>${miCaptador ? miCaptador.nombre : 'Vendedor Raíz'}</span>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-sitemap me-2"></i>Nivel:</label>
+                            <span>${nivel}</span>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-users me-2"></i>Vendedores Captados:</label>
+                            <span>${misCaptaciones.length}</span>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-map-marker-alt me-2"></i>Dirección:</label>
+                            <span>${vendedor.direccion}</span>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-calendar me-2"></i>Fecha de Registro:</label>
+                            <span>${new Date(vendedor.fechaRegistro).toLocaleDateString('es-ES')}</span>
+                        </div>
+                    `;
+                }
+            } else {
+                document.getElementById('mis-datos-detalle-container').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>No se pudieron cargar los datos personales</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('❌ Error en cargarMisDatosDetalle:', error);
+            document.getElementById('mis-datos-detalle-container').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error al cargar datos: ${error.message}</p>
+                </div>
+            `;
+        }
+    }
+    
+    function cargarMiRedCompleta(currentUser) {
+        try {
+            const vendedores = storageService.obtenerVendedores();
+            const vendedor = vendedores.find(v => v.username === currentUser.username) || 
+                            vendedores.find(v => v.codigo === currentUser.username);
+            
+            if (vendedor) {
+                const nivel = storageService.calcularNivelVendedor(vendedor.codigo);
+                actualizarElemento('nivel-red', `Nivel ${nivel}`);
+                cargarMiRed(vendedor.codigo, 'red-completa-container');
+            }
+        } catch (error) {
+            console.error('❌ Error en cargarMiRedCompleta:', error);
+        }
+    }
+    
+    function cargarMiEmpresaInfo(currentUser) {
+        try {
+            const vendedores = storageService.obtenerVendedores();
+            const empresas = storageService.obtenerEmpresasExtended();
+            
+            const vendedor = vendedores.find(v => v.username === currentUser.username) || 
+                            vendedores.find(v => v.codigo === currentUser.username);
+            
+            if (vendedor) {
+                const empresa = empresas.find(e => e.id === vendedor.empresaId);
+                const container = document.getElementById('empresa-info-container');
+                
+                if (container) {
+                    if (empresa) {
+                        container.innerHTML = `
+                            <div class="info-item">
+                                <label><i class="fas fa-building me-2"></i>Nombre:</label>
+                                <span>${empresa.nombre}</span>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fas fa-globe me-2"></i>País:</label>
+                                <span>${empresa.paisSede || empresa.pais || 'No especificado'}</span>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fas fa-map-marker-alt me-2"></i>Ciudad:</label>
+                                <span>${empresa.ciudadSede || empresa.ciudad || 'No especificada'}</span>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fas fa-chart-line me-2"></i>Facturación Anual:</label>
+                                <span>${empresa.facturacion ? `$${(empresa.facturacion / 1000000).toFixed(1)}M` : 'No disponible'}</span>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fas fa-users me-2"></i>Total Vendedores:</label>
+                                <span>${empresa.vendedores ? empresa.vendedores.length : '0'}</span>
+                            </div>
+                            ${empresa.descripcion ? `
+                            <div class="info-item">
+                                <label><i class="fas fa-file-alt me-2"></i>Descripción:</label>
+                                <span>${empresa.descripcion}</span>
+                            </div>
+                            ` : ''}
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-building"></i>
+                                <p>No tienes una empresa asignada</p>
+                            </div>
+                        `;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error en cargarMiEmpresaInfo:', error);
+        }
+    }
+    
+    function cargarMiRed(vendedorId, containerId = 'mi-red-container') {
+        try {
+            const vendedores = storageService.obtenerVendedores();
+            const captaciones = storageService.obtenerCaptaciones();
+            const empresas = storageService.obtenerEmpresasExtended();
+            
+            const misCaptaciones = captaciones.filter(c => c.captadorId === vendedorId);
+            const misVendedores = misCaptaciones.map(c => {
+                const vendedor = vendedores.find(v => v.codigo === c.captadoId);
+                if (vendedor) {
+                    const empresa = empresas.find(e => e.id === vendedor.empresaId);
+                    const subCaptaciones = captaciones.filter(sc => sc.captadorId === vendedor.codigo).length;
+                    return {
+                        ...vendedor,
+                        empresa: empresa ? empresa.nombre : 'N/A',
+                        fechaCaptacion: c.fechaCaptacion,
+                        subCaptaciones: subCaptaciones
+                    };
+                }
+                return null;
+            }).filter(Boolean);
+            
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            if (misVendedores.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>Aún no has captado ningún vendedor</p>
+                        <p class="small">Los vendedores que captures aparecerán aquí</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = misVendedores.map(vendedor => `
+                <div class="list-item">
+                    <div class="item-icon vendedor">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="item-content">
+                        <h6>${vendedor.nombre}</h6>
+                        <p>${vendedor.empresa} · ${new Date(vendedor.fechaCaptacion).toLocaleDateString('es-ES')}</p>
+                        <small class="text-muted">${vendedor.subCaptaciones} sub-captaciones</small>
+                    </div>
+                    <div class="item-badge success">Nivel ${storageService.calcularNivelVendedor(vendedor.codigo)}</div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('❌ Error en cargarMiRed:', error);
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error al cargar la red: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    }
+    
+    function actualizarElemento(id, valor) {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.textContent = valor;
+        }
+    }
+    
+    function calcularFacturacionVendedor(captaciones) {
+        const facturacionBase = captaciones.length * 15000;
+        return `$${(facturacionBase / 1000).toFixed(0)}K`;
+    }
+    
+    function mostrarDatosEjemplo() {
+        console.log('📋 Mostrando datos de ejemplo por fallo en datos reales');
+        actualizarElemento('captaciones-count', '2');
+        actualizarElemento('facturacion-total', '$30K');
+        actualizarElemento('empresa-name', 'CyberTel S.A.');
+        actualizarElemento('nivel-actual', 'Nivel 2');
+        
+        const container = document.getElementById('mi-red-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="list-item">
+                    <div class="item-icon vendedor">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="item-content">
+                        <h6>Carlos Rodríguez</h6>
+                        <p>CyberTel S.A. · 15/01/2024</p>
+                        <small class="text-muted">0 sub-captaciones</small>
+                    </div>
+                    <div class="item-badge success">Nivel 3</div>
+                </div>
+                <div class="list-item">
+                    <div class="item-icon vendedor">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="item-content">
+                        <h6>Ana López</h6>
+                        <p>Vision Media Group · 01/02/2024</p>
+                        <small class="text-muted">0 sub-captaciones</small>
+                    </div>
+                    <div class="item-badge success">Nivel 3</div>
+                </div>
+            `;
+        }
+    }
+    
+    function logout() {
+        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            // Usar el AuthService para logout
+            if (window.AuthService) {
+                window.AuthService.logout();
+            } else {
+                // Fallback si AuthService no está disponible
+                sessionStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
+        }
+    }
+    // ===== CORRECCIÓN DE USUARIOS EN TIEMPO REAL =====
+function corregirUsuarioVendedor() {
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+    const vendedores = JSON.parse(localStorage.getItem('vendedores') || '[]');
+    
+    console.log('🔧 Intentando corrección de usuario vendedor...');
+    
+    // Si el vendedor no se encuentra por username, buscar por otros métodos
+    let vendedorEncontrado = vendedores.find(v => v.username === currentUser.username);
+    
+    if (!vendedorEncontrado) {
+        console.log('⚠️ Vendedor no encontrado por username, buscando alternativas...');
+        
+        // Buscar por nombre (fallback)
+        vendedorEncontrado = vendedores.find(v => 
+            v.nombre.toLowerCase().includes(currentUser.nombre.toLowerCase())
+        );
+        
+        if (vendedorEncontrado) {
+            console.log('✅ Vendedor encontrado por nombre:', vendedorEncontrado);
+            
+            // Actualizar el username en el vendedor
+            vendedorEncontrado.username = currentUser.username;
+            localStorage.setItem('vendedores', JSON.stringify(vendedores));
+            console.log('✅ Username actualizado en datos');
+        }
+    }
+    
+    return vendedorEncontrado;
+}
+
+// Función mejorada para cargar datos del vendedor
+function cargarDatosVendedorMejorado(currentUser) {
+    console.log('👤 Buscando datos del vendedor (método mejorado)...');
+    
+    if (typeof storageService === 'undefined') {
+        console.error('❌ storageService no está disponible');
+        mostrarDatosEjemplo();
+        return;
+    }
+    
+    try {
+        const vendedores = storageService.obtenerVendedores();
+        const empresas = storageService.obtenerEmpresasExtended();
+        const captaciones = storageService.obtenerCaptaciones();
+        
+        console.log('📊 Datos disponibles:');
+        console.log('- Vendedores:', vendedores);
+        console.log('- Empresas:', empresas);
+        console.log('- Captaciones:', captaciones);
+        
+        // Buscar vendedor por múltiples métodos
+        let vendedor = vendedores.find(v => v.username === currentUser.username);
+        
+        if (!vendedor) {
+            console.log('⚠️ No encontrado por username, intentando corrección...');
+            vendedor = corregirUsuarioVendedor();
+        }
+        
+        if (!vendedor) {
+            console.log('⚠️ No encontrado después de corrección, usando primer vendedor...');
+            // Usar el primer vendedor como fallback
+            vendedor = vendedores[0];
+        }
+        
+        if (vendedor) {
+            console.log('✅ Vendedor a usar:', vendedor);
+            
+            // Actualizar UI
+            actualizarElemento('username-placeholder', vendedor.nombre);
+            actualizarElemento('header-username', vendedor.nombre);
+            document.title = `Vendedor - ${vendedor.nombre}`;
+            
+            // Obtener empresa
+            const empresa = empresas.find(e => e.id === vendedor.empresaId);
+            console.log('🏢 Empresa encontrada:', empresa);
+            
+            // Calcular estadísticas
+            const misCaptaciones = captaciones.filter(c => c.captadorId === vendedor.codigo);
+            const nivel = storageService.calcularNivelVendedor(vendedor.codigo);
+            
+            console.log('📈 Estadísticas calculadas:', {
+                captaciones: misCaptaciones.length,
+                nivel: nivel,
+                empresa: empresa ? empresa.nombre : 'No asignada'
+            });
+            
+            // Actualizar estadísticas
+            actualizarElemento('captaciones-count', misCaptaciones.length);
+            actualizarElemento('facturacion-total', calcularFacturacionVendedor(misCaptaciones));
+            actualizarElemento('empresa-name', empresa ? empresa.nombre : 'No asignada');
+            actualizarElemento('nivel-actual', `Nivel ${nivel}`);
+            
+            // Cargar red
+            cargarMiRed(vendedor.codigo);
+            
+        } else {
+            console.error('❌ No hay vendedores disponibles en la base de datos');
+            mostrarDatosEjemplo();
+        }
+        
+    } catch (error) {
+        console.error('❌ Error al cargar datos del vendedor:', error);
+        mostrarDatosEjemplo();
+    }
+}
+
+// Reemplazar la función original en el DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Inicializando dashboard vendedor (versión corregida)...');
+    
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+    
+    if (!currentUser || currentUser.role !== 'vendedor') {
+        alert('❌ Acceso denegado. Solo para vendedores.');
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    console.log('👤 Usuario actual:', currentUser);
+    
+    // Asegurar que los modelos estén inicializados
+    if (typeof inicializarModelos === 'function') {
+        inicializarModelos();
+        console.log("✅ Modelos inicializados para vendedor");
+    }
+    
+    // Configurar navegación
+    setupNavigation();
+    
+    // Cargar datos del vendedor con el método mejorado
+    setTimeout(() => {
+        cargarDatosVendedorMejorado(currentUser);
+    }, 1000);
+    
+    // Cargar sección por defecto
+    loadSectionContent('#dashboard');
+});
+    </script>
+</head>
+<body class="admin-body">
+    <!-- Sidebar Vendedor -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="company-brand">
+                <i class="fas fa-satellite-dish brand-icon"></i>
+                <div class="brand-text">
+                    <h3>CyberVision</h3>
+                    <span>Panel Vendedor</span>
+                </div>
+            </div>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="#dashboard" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Mi Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#mis-datos" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Mis Datos</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#mi-red" class="nav-link">
+                    <i class="fas fa-network-wired"></i>
+                    <span>Mi Red</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#mi-empresa" class="nav-link">
+                    <i class="fas fa-building"></i>
+                    <span>Mi Empresa</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <strong id="username-placeholder">Vendedor</strong>
+                    <small>Cuenta Vendedor</small>
+                </div>
+            </div>
+            <a href="index.html" class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-left">
+                <button class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="contentTitle">Mi Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <div class="header-actions">
+                    <button class="btn btn-user">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <span id="header-username">Vendedor</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <section class="content-grid" id="mainContent">
+            <!-- El contenido se carga dinámicamente aquí -->
+        </section>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

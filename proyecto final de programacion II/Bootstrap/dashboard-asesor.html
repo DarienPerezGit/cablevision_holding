@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asesor - CyberVision Holding</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    
+    <style>
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: var(--cyber-gray);
+        border-radius: 8px;
+        border: 1px solid var(--border-blue);
+    }
+    
+    .info-item label {
+        font-weight: 600;
+        color: var(--cyber-blue);
+        min-width: 200px;
+        margin: 0;
+    }
+    
+    .info-item span {
+        color: var(--text-light);
+        flex: 1;
+        text-align: right;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .asesoria-item {
+        border-left: 4px solid var(--cyber-blue);
+        padding-left: 1rem;
+    }
+    
+    .badge-area {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    
+    .badge-empresa {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+    }
+    </style>
+</head>
+<body class="admin-body">
+    <!-- Sidebar Asesor -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="company-brand">
+                <i class="fas fa-satellite-dish brand-icon"></i>
+                <div class="brand-text">
+                    <h3>CyberVision</h3>
+                    <span>Panel Asesor</span>
+                </div>
+            </div>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="#dashboard" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Mi Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#mis-asesorias" class="nav-link">
+                    <i class="fas fa-handshake"></i>
+                    <span>Mis Asesorías</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#empresas" class="nav-link">
+                    <i class="fas fa-building"></i>
+                    <span>Empresas Asesoradas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#areas" class="nav-link">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Áreas de Expertise</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="user-details">
+                    <strong id="asesor-name">Asesor</strong>
+                    <small>Cuenta Asesor</small>
+                </div>
+            </div>
+            <a href="index.html" class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-left">
+                <button class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="contentTitle">Panel de Asesor</h1>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <section class="content-grid" id="mainContent">
+            <!-- El contenido se carga dinámicamente aquí -->
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/models.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/holding-api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/asesorias-crud.js"></script>
+
+<script>
+// ===== DATOS DEL ASESOR ACTUAL =====
+const asesorActual = {
+    codigo: "A001",
+    nombre: "Dr. Roberto Silva",
+    titulacion: "PhD en Telecomunicaciones",
+    fechaInicio: "2023-02-01"
+};
+
+// ===== INICIALIZACIÓN =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎓 Inicializando dashboard asesor...');
+    
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+    
+    if (!currentUser || currentUser.role !== 'asesor') {
+        alert('❌ Acceso denegado. Solo para asesores.');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // Inicializar datos de asesorías
+    if (typeof inicializarAsesorias === 'function') {
+        inicializarAsesorias();
+    }
+    
+    // Configurar navegación
+    setupNavigation();
+    
+    // Cargar datos del asesor
+    cargarDatosAsesor(currentUser);
+    
+    // Cargar sección por defecto
+    loadSectionContent('#dashboard');
+});
+
+// ===== NAVEGACIÓN =====
+function setupNavigation() {
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', handleNavigation);
+    });
+}
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('active');
+}
+
+function handleNavigation(e) {
+    e.preventDefault();
+    const target = e.currentTarget.getAttribute('href');
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+    
+    navLinks.forEach(link => link.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    
+    loadSectionContent(target);
+}
+
+// ===== SECCIONES DE CONTENIDO =====
+function loadSectionContent(section) {
+    const contentTitle = document.getElementById('contentTitle');
+    const mainContent = document.getElementById('mainContent');
+    
+    if (!mainContent) return;
+    
+    switch(section) {
+        case '#mis-asesorias':
+            contentTitle.textContent = 'Mis Asesorías Activas';
+            loadMisAsesoriasContent(mainContent);
+            break;
+        case '#empresas':
+            contentTitle.textContent = 'Empresas Asesoradas';
+            loadEmpresasAsesoradasContent(mainContent);
+            break;
+        case '#areas':
+            contentTitle.textContent = 'Áreas de Expertise';
+            loadAreasExpertiseContent(mainContent);
+            break;
+        case '#dashboard':
+        default:
+            contentTitle.textContent = 'Mi Dashboard';
+            loadDashboardContent(mainContent);
+    }
+}
+
+// ===== DASHBOARD PRINCIPAL =====
+function loadDashboardContent(container = null) {
+    const targetContainer = container || document.getElementById('mainContent');
+    
+    targetContainer.innerHTML = `
+        <section class="stats-section">
+            <div class="row g-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-icon asesor">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="asesorias-activas">0</h3>
+                            <p>Asesorías Activas</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-icon empresa">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="empresas-count">0</h3>
+                            <p>Empresas Asesoradas</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-icon vendedor">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="areas-count">0</h3>
+                            <p>Áreas de Expertise</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-icon facturacion">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="horas-totales">0h</h3>
+                            <p>Horas Asesoradas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Asesorías Recientes -->
+        <div class="row mt-4">
+            <div class="col-lg-6">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-handshake me-2"></i>Asesorías Recientes</h4>
+                        <a href="#mis-asesorias" class="btn-link">Ver Todas</a>
+                    </div>
+                    <div class="card-body">
+                        <div id="asesorias-recientes-container">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Próximas Reuniones -->
+            <div class="col-lg-6">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-calendar me-2"></i>Próximas Reuniones</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="proximas-reuniones-container">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    cargarDashboardData();
+}
+
+// ===== MIS ASESORÍAS =====
+function loadMisAsesoriasContent(container = null) {
+    const targetContainer = container || document.getElementById('mainContent');
+    
+    targetContainer.innerHTML = `
+        <div class="row">
+            <div class="col-12">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-handshake me-2"></i>Mis Asesorías</h4>
+                        <button class="btn btn-success btn-sm" onclick="nuevaAsesoria()">
+                            <i class="fas fa-plus me-2"></i>Nueva Asesoría
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Empresa</th>
+                                        <th>Área</th>
+                                        <th>Fecha Inicio</th>
+                                        <th>Estado</th>
+                                        <th>Horas</th>
+                                        <th>Próxima Reunión</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="asesoriasTableBody">
+                                    <!-- Se carga dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    cargarTablaAsesorias();
+}
+
+// ===== EMPRESAS ASESORADAS =====
+function loadEmpresasAsesoradasContent(container = null) {
+    const targetContainer = container || document.getElementById('mainContent');
+    
+    targetContainer.innerHTML = `
+        <div class="row">
+            <div class="col-12">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-building me-2"></i>Empresas Asesoradas</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="empresas-asesoradas-container">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    cargarEmpresasAsesoradas();
+}
+
+// ===== ÁREAS DE EXPERTISE =====
+function loadAreasExpertiseContent(container = null) {
+    const targetContainer = container || document.getElementById('mainContent');
+    
+    targetContainer.innerHTML = `
+        <div class="row">
+            <div class="col-12">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-layer-group me-2"></i>Áreas de Expertise</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="areas-expertise-container">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    cargarAreasExpertise();
+}
+
+// ===== FUNCIONES DE CARGA DE DATOS =====
+function cargarDatosAsesor(currentUser) {
+    console.log('🎓 Cargando datos del asesor...');
+    
+    // Actualizar UI con información del asesor
+    document.getElementById('asesor-name').textContent = asesorActual.nombre;
+    document.title = `Asesor - ${asesorActual.nombre}`;
+}
+
+function cargarDashboardData() {
+    console.log('📊 Cargando datos del dashboard...');
+    
+    if (typeof obtenerEstadisticasAsesor !== 'function') {
+        console.error('❌ Funciones de asesorías no disponibles');
+        return;
+    }
+    
+    // Calcular estadísticas
+    const stats = obtenerEstadisticasAsesor(asesorActual.codigo);
+    
+    // Actualizar estadísticas
+    actualizarElemento('asesorias-activas', stats.asesoriasActivas);
+    actualizarElemento('empresas-count', stats.empresasUnicas);
+    actualizarElemento('areas-count', stats.areasUnicas);
+    actualizarElemento('horas-totales', stats.horasTotales + 'h');
+    
+    // Cargar asesorías recientes
+    cargarAsesoriasRecientes();
+    
+    // Cargar próximas reuniones
+    cargarProximasReuniones();
+}
+
+function cargarAsesoriasRecientes() {
+    const container = document.getElementById('asesorias-recientes-container');
+    
+    if (typeof obtenerAsesoriasPorAsesor !== 'function') {
+        container.innerHTML = '<p class="text-muted">Sistema de asesorías no disponible</p>';
+        return;
+    }
+    
+    const asesorias = obtenerAsesoriasPorAsesor(asesorActual.codigo);
+    const asesoriasRecientes = asesorias
+        .sort((a, b) => new Date(b.fechaInicio) - new Date(a.fechaInicio))
+        .slice(0, 3);
+    
+    if (asesoriasRecientes.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-handshake"></i>
+                <p>No hay asesorías recientes</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = asesoriasRecientes.map(asesoria => {
+        const empresa = obtenerEmpresaPorId(asesoria.empresaId);
+        const area = obtenerAreaPorId(asesoria.areaId);
+        
+        return `
+            <div class="list-item asesoria-item">
+                <div class="item-icon asesor">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="item-content">
+                    <h6>${empresa ? empresa.nombre : 'Empresa'}</h6>
+                    <p>${area ? area.nombre : 'Área'} · ${new Date(asesoria.fechaInicio).toLocaleDateString('es-ES')}</p>
+                    <small class="text-muted">${asesoria.descripcion}</small>
+                </div>
+                <div class="item-badge ${asesoria.estado === 'En curso' ? 'success' : 'secondary'}">
+                    ${asesoria.estado}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function cargarProximasReuniones() {
+    const container = document.getElementById('proximas-reuniones-container');
+    
+    if (typeof obtenerAsesoriasPorAsesor !== 'function') {
+        container.innerHTML = '<p class="text-muted">Sistema de asesorías no disponible</p>';
+        return;
+    }
+    
+    const asesorias = obtenerAsesoriasPorAsesor(asesorActual.codigo);
+    const reunionesFuturas = asesorias
+        .filter(a => a.proximaReunion && new Date(a.proximaReunion) > new Date())
+        .sort((a, b) => new Date(a.proximaReunion) - new Date(b.proximaReunion))
+        .slice(0, 3);
+    
+    if (reunionesFuturas.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-calendar"></i>
+                <p>No hay reuniones programadas</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = reunionesFuturas.map(asesoria => {
+        const empresa = obtenerEmpresaPorId(asesoria.empresaId);
+        const fechaReunion = new Date(asesoria.proximaReunion);
+        const diasRestantes = Math.ceil((fechaReunion - new Date()) / (1000 * 60 * 60 * 24));
+        
+        return `
+            <div class="list-item">
+                <div class="item-icon empresa">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="item-content">
+                    <h6>${empresa ? empresa.nombre : 'Empresa'}</h6>
+                    <p>${fechaReunion.toLocaleDateString('es-ES')} - ${fechaReunion.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
+                    <small class="text-muted">${diasRestantes} días restantes</small>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function cargarTablaAsesorias() {
+    const tbody = document.getElementById('asesoriasTableBody');
+    
+    if (typeof obtenerAsesoriasPorAsesor !== 'function') {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Sistema de asesorías no disponible</td></tr>';
+        return;
+    }
+    
+    const asesorias = obtenerAsesoriasPorAsesor(asesorActual.codigo);
+    
+    if (asesorias.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    <i class="fas fa-handshake fa-2x mb-3 d-block"></i>
+                    No hay asesorías registradas
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = asesorias.map(asesoria => {
+        const empresa = obtenerEmpresaPorId(asesoria.empresaId);
+        const area = obtenerAreaPorId(asesoria.areaId);
+        
+        return `
+            <tr>
+                <td>${empresa ? empresa.nombre : 'N/A'}</td>
+                <td>
+                    <span class="badge badge-area">${area ? area.nombre : 'N/A'}</span>
+                </td>
+                <td>${new Date(asesoria.fechaInicio).toLocaleDateString('es-ES')}</td>
+                <td>
+                    <span class="badge ${asesoria.estado === 'En curso' ? 'bg-success' : 'bg-secondary'}">
+                        ${asesoria.estado}
+                    </span>
+                </td>
+                <td>${asesoria.horasAsesoradas}h</td>
+                <td>${asesoria.proximaReunion ? new Date(asesoria.proximaReunion).toLocaleDateString('es-ES') : '-'}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarAsesoria(${asesoria.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="verDetalleAsesoria(${asesoria.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarAsesoria(${asesoria.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function cargarEmpresasAsesoradas() {
+    const container = document.getElementById('empresas-asesoradas-container');
+    
+    if (typeof obtenerAsesoriasPorAsesor !== 'function') {
+        container.innerHTML = '<p class="text-muted">Sistema de asesorías no disponible</p>';
+        return;
+    }
+    
+    const asesorias = obtenerAsesoriasPorAsesor(asesorActual.codigo);
+    const empresasUnicas = [...new Set(asesorias.map(a => a.empresaId))];
+    
+    if (empresasUnicas.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-building"></i>
+                <p>No hay empresas asesoradas</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = empresasUnicas.map(empresaId => {
+        const empresa = obtenerEmpresaPorId(empresaId);
+        const asesoriasEmpresa = asesorias.filter(a => a.empresaId === empresaId);
+        const areasEmpresa = [...new Set(asesoriasEmpresa.map(a => a.areaId))];
+        
+        return `
+            <div class="list-item">
+                <div class="item-icon empresa">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="item-content">
+                    <h6>${empresa ? empresa.nombre : 'Empresa'}</h6>
+                    <p>${asesoriasEmpresa.length} asesoría(s) activa(s)</p>
+                    <div class="mt-2">
+                        ${areasEmpresa.map(areaId => {
+                            const area = obtenerAreaPorId(areaId);
+                            return `<span class="badge badge-area me-1">${area ? area.nombre : 'Área'}</span>`;
+                        }).join('')}
+                    </div>
+                </div>
+                <div class="item-badge success">
+                    ${empresa ? empresa.estado : 'Activa'}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function cargarAreasExpertise() {
+    const container = document.getElementById('areas-expertise-container');
+    
+    if (typeof obtenerAsesoriasPorAsesor !== 'function') {
+        container.innerHTML = '<p class="text-muted">Sistema de asesorías no disponible</p>';
+        return;
+    }
+    
+    const asesorias = obtenerAsesoriasPorAsesor(asesorActual.codigo);
+    const areasUnicas = [...new Set(asesorias.map(a => a.areaId))];
+    const areasMercado = JSON.parse(localStorage.getItem('areasMercado') || '[]');
+    
+    if (areasUnicas.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-layer-group"></i>
+                <p>No hay áreas de expertise registradas</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = areasUnicas.map(areaId => {
+        const area = areasMercado.find(a => a.id === areaId);
+        const asesoriasArea = asesorias.filter(a => a.areaId === areaId);
+        const horasArea = asesoriasArea.reduce((sum, a) => sum + (a.horasAsesoradas || 0), 0);
+        
+        return `
+            <div class="info-item">
+                <label>
+                    <i class="fas fa-layer-group me-2"></i>
+                    ${area ? area.nombre : 'Área Desconocida'}
+                </label>
+                <span>
+                    ${asesoriasArea.length} asesorías · ${horasArea}h
+                    <br>
+                    <small class="text-muted">${area ? area.descripcion : ''}</small>
+                </span>
+            </div>
+        `;
+    }).join('');
+}
+
+// ===== FUNCIONES CRUD COMPLETAS =====
+function nuevaAsesoria() {
+    console.log('➕ Abriendo modal para nueva asesoría...');
+    crearModalAsesoria();
+}
+
+function editarAsesoria(id) {
+    console.log('✏️ Editando asesoría ID:', id);
+    
+    const asesoria = obtenerAsesoriaPorId(id);
+    if (!asesoria) {
+        alert('Asesoría no encontrada');
+        return;
+    }
+    
+    crearModalAsesoria(asesoria);
+}
+
+function verDetalleAsesoria(id) {
+    const asesoria = obtenerAsesoriaPorId(id);
+    if (!asesoria) {
+        alert('Asesoría no encontrada');
+        return;
+    }
+    
+    const empresa = obtenerEmpresaPorId(asesoria.empresaId);
+    const area = obtenerAreaPorId(asesoria.areaId);
+    
+    const detalle = `
+        <strong>Detalle de Asesoría</strong>
+        <hr>
+        <p><strong>Empresa:</strong> ${empresa ? empresa.nombre : 'N/A'}</p>
+        <p><strong>Área:</strong> ${area ? area.nombre : 'N/A'}</p>
+        <p><strong>Fecha Inicio:</strong> ${new Date(asesoria.fechaInicio).toLocaleDateString('es-ES')}</p>
+        <p><strong>Estado:</strong> ${asesoria.estado}</p>
+        <p><strong>Horas Asesoradas:</strong> ${asesoria.horasAsesoradas}h</p>
+        <p><strong>Próxima Reunión:</strong> ${asesoria.proximaReunion ? new Date(asesoria.proximaReunion).toLocaleDateString('es-ES') : 'No programada'}</p>
+        <p><strong>Descripción:</strong> ${asesoria.descripcion}</p>
+    `;
+    
+    alert(detalle);
+}
+
+function eliminarAsesoria(id) {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta asesoría?\n\nEsta acción no se puede deshacer.')) {
+        return;
+    }
+    
+    if (eliminarAsesoria(id)) {
+        alert('✅ Asesoría eliminada correctamente');
+        cargarTablaAsesorias();
+        cargarDashboardData();
+    } else {
+        alert('❌ Error al eliminar la asesoría');
+    }
+}
+
+// ===== MODAL PARA ASESORÍAS =====
+function crearModalAsesoria(asesoriaExistente = null) {
+    // Eliminar modal existente si hay uno
+    const modalExistente = document.getElementById('asesoriaModal');
+    if (modalExistente) {
+        modalExistente.remove();
+    }
+    
+    const esEdicion = asesoriaExistente !== null;
+    const titulo = esEdicion ? 'Editar Asesoría' : 'Nueva Asesoría';
+    
+    const modalHTML = `
+    <div class="modal fade" id="asesoriaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content cyber-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title">${titulo}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="asesoriaForm">
+                        <input type="hidden" id="asesoriaId" value="${esEdicion ? asesoriaExistente.id : ''}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="asesoriaEmpresa" class="form-label">Empresa *</label>
+                                <select class="form-select" id="asesoriaEmpresa" required>
+                                    <option value="">Seleccionar empresa...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="asesoriaArea" class="form-label">Área de Mercado *</label>
+                                <select class="form-select" id="asesoriaArea" required>
+                                    <option value="">Seleccionar área...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="asesoriaFechaInicio" class="form-label">Fecha de Inicio *</label>
+                                <input type="date" class="form-control" id="asesoriaFechaInicio" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="asesoriaEstado" class="form-label">Estado</label>
+                                <select class="form-select" id="asesoriaEstado">
+                                    <option value="En curso">En curso</option>
+                                    <option value="Completada">Completada</option>
+                                    <option value="Pausada">Pausada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="asesoriaHoras" class="form-label">Horas Asesoradas</label>
+                                <input type="number" class="form-control" id="asesoriaHoras" value="0" min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="asesoriaProximaReunion" class="form-label">Próxima Reunión</label>
+                                <input type="date" class="form-control" id="asesoriaProximaReunion">
+                            </div>
+                            <div class="col-12">
+                                <label for="asesoriaDescripcion" class="form-label">Descripción *</label>
+                                <textarea class="form-control" id="asesoriaDescripcion" rows="4" required placeholder="Describe los objetivos y alcance de la asesoría..."></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarAsesoria()">
+                        ${esEdicion ? 'Actualizar' : 'Crear'} Asesoría
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Cargar datos en los selects
+    cargarEmpresasEnSelect();
+    cargarAreasEnSelect();
+    
+    // Si es edición, cargar datos existentes
+    if (esEdicion) {
+        document.getElementById('asesoriaEmpresa').value = asesoriaExistente.empresaId;
+        document.getElementById('asesoriaArea').value = asesoriaExistente.areaId;
+        document.getElementById('asesoriaFechaInicio').value = asesoriaExistente.fechaInicio;
+        document.getElementById('asesoriaEstado').value = asesoriaExistente.estado;
+        document.getElementById('asesoriaHoras').value = asesoriaExistente.horasAsesoradas;
+        document.getElementById('asesoriaProximaReunion').value = asesoriaExistente.proximaReunion || '';
+        document.getElementById('asesoriaDescripcion').value = asesoriaExistente.descripcion;
+    } else {
+        // Valores por defecto para nueva asesoría
+        document.getElementById('asesoriaFechaInicio').value = new Date().toISOString().split('T')[0];
+    }
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('asesoriaModal'));
+    modal.show();
+}
+
+function cargarEmpresasEnSelect() {
+    const empresas = JSON.parse(localStorage.getItem('empresasExtended') || '[]');
+    const select = document.getElementById('asesoriaEmpresa');
+    
+    if (select) {
+        select.innerHTML = '<option value="">Seleccionar empresa...</option>' +
+            empresas.map(emp => `<option value="${emp.id}">${emp.nombre}</option>`).join('');
+    }
+}
+
+function cargarAreasEnSelect() {
+    const areas = JSON.parse(localStorage.getItem('areasMercado') || '[]');
+    const select = document.getElementById('asesoriaArea');
+    
+    if (select) {
+        select.innerHTML = '<option value="">Seleccionar área...</option>' +
+            areas.map(area => `<option value="${area.id}">${area.nombre}</option>`).join('');
+    }
+}
+
+function guardarAsesoria() {
+    const form = document.getElementById('asesoriaForm');
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const asesoriaData = {
+        asesorId: asesorActual.codigo,
+        empresaId: parseInt(document.getElementById('asesoriaEmpresa').value),
+        areaId: parseInt(document.getElementById('asesoriaArea').value),
+        fechaInicio: document.getElementById('asesoriaFechaInicio').value,
+        descripcion: document.getElementById('asesoriaDescripcion').value,
+        estado: document.getElementById('asesoriaEstado').value,
+        horasAsesoradas: parseInt(document.getElementById('asesoriaHoras').value) || 0,
+        proximaReunion: document.getElementById('asesoriaProximaReunion').value || null
+    };
+    
+    const asesoriaId = document.getElementById('asesoriaId').value;
+    let resultado = false;
+    
+    if (asesoriaId) {
+        // Editar asesoría existente
+        resultado = actualizarAsesoria(parseInt(asesoriaId), asesoriaData);
+    } else {
+        // Crear nueva asesoría
+        resultado = crearAsesoria(asesoriaData);
+    }
+    
+    if (resultado) {
+        // Cerrar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('asesoriaModal'));
+        modal.hide();
+        
+        // Recargar datos
+        cargarTablaAsesorias();
+        cargarDashboardData();
+        
+        alert(`✅ Asesoría ${asesoriaId ? 'actualizada' : 'creada'} correctamente`);
+    } else {
+        alert('❌ Error al guardar la asesoría');
+    }
+}
+
+// ===== FUNCIONES AUXILIARES =====
+function obtenerEmpresaPorId(empresaId) {
+    const empresas = JSON.parse(localStorage.getItem('empresasExtended') || '[]');
+    return empresas.find(e => e.id === empresaId);
+}
+
+function obtenerAreaPorId(areaId) {
+    const areasMercado = JSON.parse(localStorage.getItem('areasMercado') || '[]');
+    return areasMercado.find(a => a.id === areaId);
+}
+
+function actualizarElemento(id, valor) {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+        elemento.textContent = valor;
+    }
+}
+
+function logout() {
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        // Usar el AuthService para logout
+        if (window.AuthService) {
+            window.AuthService.logout();
+        } else {
+            // Fallback si AuthService no está disponible
+            sessionStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+    }
+}
+
+console.log("🎓 Dashboard del asesor cargado correctamente");
+</script>
+</body>
+</html>

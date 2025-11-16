@@ -1,0 +1,45 @@
+Explicación del Proyecto Cablevision Holding
+===========================================
+
+Resumen General:
+----------------
+Este proyecto es un sistema de gestión para un holding de empresas de telecomunicaciones, que permite administrar empresas, vendedores, asesores, cuentas y captaciones. Está desarrollado en Java con Spring Boot para el backend y utiliza una base de datos relacional (MySQL).
+
+Componentes Principales:
+------------------------
+- **Empresas:** Se pueden registrar empresas, asociarlas a países y áreas de mercado, y gestionar su información relevante.
+- **Vendedores:** Cada vendedor pertenece a una empresa y puede tener vendedores a su cargo. Se registran sus datos y jerarquía.
+- **Asesores:** Los asesores pueden estar vinculados a varias empresas y áreas de mercado, y tienen información profesional asociada.
+- **Cuentas:** El sistema gestiona cuentas con saldo, PIN y estado de actividad.
+- **Captaciones:** Permite registrar cuándo un vendedor capta a otro vendedor, guardando la fecha y relación.
+
+Relaciones:
+-----------
+- Una empresa puede operar en varios países y áreas de mercado.
+- Los vendedores pueden tener un superior y pueden captar a otros vendedores.
+- Los asesores pueden estar vinculados a varias empresas y áreas de mercado.
+
+Tecnologías Utilizadas:
+-----------------------
+- Java 17+
+- Spring Boot
+- JPA/Hibernate
+- MySQL
+- Bootstrap (para el frontend)
+
+Archivos Importantes:
+---------------------
+- `estructura_base.sql`: Script para crear la estructura de la base de datos.
+- `datos_iniciales.sql`: Script para insertar datos de ejemplo.
+- `DOCUMENTACION_TECNICA.md`: Documentación técnica detallada.
+- `README.md`: Instrucciones generales del proyecto.
+
+Ejecución:
+----------
+1. Crear la base de datos en MySQL.
+2. Ejecutar el script `estructura_base.sql` para crear las tablas.
+3. Ejecutar el script `datos_iniciales.sql` para poblar datos de ejemplo.
+4. Configurar el archivo `application.properties` con los datos de conexión.
+5. Ejecutar la aplicación con Maven o desde el IDE.
+
+Este archivo puede ser usado para explicar el proyecto en presentaciones, entregas o documentación adicional.

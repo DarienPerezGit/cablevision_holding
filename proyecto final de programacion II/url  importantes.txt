@@ -1,0 +1,18 @@
+para pruebas usamos Swagger UI que es una interfaz web interactiva 
+para probar las API REST.
+
+Swagger UI: http://localhost:8080/swagger-ui/index.html
+
+para la administacion de la BD usamos H2 Console que es una interfaz web 
+que te permite ver y administrar la base de datos directamente desde el navegador.
+H2 Console: http://localhost:8080/h2-console
+
+usuario: sa 
+contraseña: password
+
+
+
+para ejecutar 
+
+cd cablevision-holding
+mvn spring-boot:run

@@ -1,0 +1,92 @@
+TRABAJO PRÁCTICO FINAL 
+DESARROLLO DE APLICACIÓN CON JAVA 
+Tema 
+El trabajo práctico final consistirá en el desarrollo de una aplicación completa, 
+utilizando Java y una base de datos relacional, sobre el mismo tema del primer 
+trabajo práctico del año. 
+En caso de que el grupo desee trabajar sobre un tema distinto, deberá 
+consultarlo previamente y presentar una propuesta clara y fundamentada del 
+nuevo tema. 
+ 
+Requisitos Técnicos 
+1. Actores (Usuarios del Sistema): 
+El sistema deberá contar con al menos 3 actores distintos, es decir, tres 
+tipos diferentes de usuarios con funcionalidades diferenciadas (por 
+ejemplo: Administrador, Usuario, Invitado). 
+ 
+2. Frameworks: 
+Se deberán utilizar al menos 2 frameworks de Java, tales como: 
+a. Spring Boot / Spring MVC / Spring Data JPA 
+b. Hibernate 
+c. Thymeleaf 
+d. (u otros frameworks equivalentes, previa aprobación del docente) 
+ 
+3. Base de Datos: 
+a. Deberá ser relacional (por ejemplo, MySQL, PostgreSQL o H2). 
+b. Se deberá diseñar el modelo entidad-relación correspondiente. 
+c. La aplicación deberá incluir la persistencia completa de datos (ABM 
+funcionales). 
+ 
+4. Arquitectura del Proyecto: 
+El proyecto deberá estar organizado en capas (por ejemplo, Controlador, 
+Servicio, Repositorio, Modelo), cumpliendo con buenas prácticas de 
+programación y separación de responsabilidades, es decir, respetando 
+con pilares de la POO y los principios SOLID. 
+ 
+5. Control de Versiones: 
+a. El proyecto deberá estar alojado en GitHub. 
+b. Todos los integrantes del grupo deberán figurar como colaboradores 
+activos del repositorio. 
+ 
+Evaluación Documentada 
+La entrega deberá incluir un documento de evaluación (en formato PDF) con la 
+siguiente estructura: 
+1. Portada 
+a. Nombre de la materia 
+b. Docente 
+c. Integrantes del grupo 
+d. Curso y año 
+e. Título del proyecto 
+ 
+2. Link al repositorio de GitHub 
+(Debe contener el proyecto completo y ejecutable) 
+ 
+3. Descripción general del proyecto 
+a. Tema elegido 
+b. Objetivos del sistema 
+c. Descripción de los actores y sus roles 
+ 
+4. Arquitectura y desarrollo 
+a. Descripción de las capas del sistema 
+b. Explicación de la estructura del proyecto 
+c. Descripción de las tecnologías y frameworks utilizados 
+d. Explicación de las clases principales y sus responsabilidades 
+e. Capturas o ejemplos de código relevantes 
+ 
+5. Casos de uso y diagramas 
+a. Diagrama de casos de uso con los actores involucrados 
+b. Breve descripción de cada caso de uso 
+ 
+6. Base de datos 
+a. Diagrama entidad-relación 
+b. Descripción de las tablas y relaciones 
+c. Ejemplo de datos cargados (opcional) 
+ 
+7. Manual de usuario 
+Se deberá incluir un manual de uso para cada actor del sistema, 
+explicando: 
+a. Cómo acceder al sistema 
+b. Qué funcionalidades tiene cada usuario 
+c. Ejemplos o capturas de pantalla de las pantallas principales 
+ 
+Criterios de Evaluación 
+• Cumplimiento de los requisitos técnicos. 
+• Correcta aplicación de los frameworks seleccionados. 
+• Organización y estructura del código. 
+• Claridad en la documentación. 
+• Diseño adecuado de la base de datos. 
+• Funcionamiento completo de las funcionalidades requeridas. 
+• Interfaz clara y funcional. 
+• Trabajo colaborativo y uso efectivo de GitHub. 
+• Defensa oral personal (individual) sobre cualquier parte o aspecto del 
+proyecto

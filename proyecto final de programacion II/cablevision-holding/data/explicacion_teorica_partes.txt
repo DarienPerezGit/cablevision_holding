@@ -1,0 +1,57 @@
+Explicación Teórica y Partes del Proyecto
+========================================
+
+1. Arquitectura General
+-----------------------
+El proyecto sigue una arquitectura de capas típica de aplicaciones empresariales Java:
+- **Capa de Presentación (Frontend):** Realizada con HTML y Bootstrap, permite la interacción del usuario con el sistema.
+- **Capa de Negocio (Backend):** Implementada en Java con Spring Boot, contiene la lógica de negocio y expone servicios REST.
+- **Capa de Persistencia:** Utiliza JPA/Hibernate para mapear objetos Java a tablas de la base de datos relacional (MySQL).
+
+2. Partes Principales del Proyecto
+----------------------------------
+- **Modelos (Entities):** Representan las tablas de la base de datos y las relaciones entre ellas. Ejemplo: Empresa, Vendedor, Asesor, Cuenta, Captacion.
+- **Repositorios:** Interfaces que extienden JpaRepository para acceder y manipular datos en la base de datos.
+- **Servicios:** Clases que contienen la lógica de negocio y coordinan la interacción entre controladores y repositorios.
+- **Controladores:** Exponen endpoints REST para que el frontend o clientes externos interactúen con el sistema.
+- **DTOs (Data Transfer Objects):** Objetos usados para transferir datos entre el backend y el frontend, evitando exponer directamente las entidades.
+- **Configuraciones:** Archivos y clases para configurar seguridad, CORS, OpenAPI, etc.
+
+3. Preguntas Teóricas Frecuentes
+--------------------------------
+- **¿Qué es Spring Boot?**
+  Es un framework que simplifica la creación de aplicaciones Java, permitiendo levantar servicios web rápidamente con configuración mínima.
+
+- **¿Qué es JPA/Hibernate?**
+  JPA es una especificación para el mapeo objeto-relacional en Java. Hibernate es una implementación de JPA que permite trabajar con bases de datos usando objetos Java.
+
+- **¿Qué es una entidad?**
+  Es una clase Java anotada con @Entity que representa una tabla en la base de datos.
+
+- **¿Qué es un repositorio?**
+  Es una interfaz que permite realizar operaciones CRUD (crear, leer, actualizar, borrar) sobre las entidades.
+
+- **¿Qué es un DTO?**
+  Es un objeto que se usa para transferir datos entre procesos, evitando exponer directamente la estructura interna de las entidades.
+
+- **¿Qué es una relación @ManyToOne, @OneToMany, @ManyToMany?**
+  Son anotaciones de JPA que definen cómo se relacionan las entidades entre sí (uno a muchos, muchos a uno, muchos a muchos).
+
+- **¿Qué es un endpoint REST?**
+  Es una URL que expone una funcionalidad del backend y puede ser consumida por el frontend o aplicaciones externas usando HTTP.
+
+- **¿Qué es CORS?**
+  Es una política de seguridad que controla qué dominios pueden acceder a los recursos del backend desde el navegador.
+
+- **¿Qué es Bootstrap?**
+  Es un framework de CSS y JS que facilita el diseño de interfaces web responsivas y modernas.
+
+4. Consejos para la Explicación Oral
+------------------------------------
+- Explica la relación entre las capas y cómo fluye la información.
+- Menciona la importancia de separar responsabilidades (modelo, lógica, presentación).
+- Si te preguntan sobre seguridad, menciona la configuración de CORS y autenticación.
+- Si te preguntan sobre la base de datos, explica cómo las entidades se traducen en tablas y relaciones.
+- Si te preguntan sobre el frontend, destaca el uso de Bootstrap y la interacción con el backend vía REST.
+
+Este archivo te servirá como guía rápida para responder preguntas teóricas y explicar cada parte del proyecto.

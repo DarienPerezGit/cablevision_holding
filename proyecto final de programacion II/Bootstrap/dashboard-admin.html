@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CyberVision Holding</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    
+    <script>
+    // ===== VALIDACIÓN DE SEGURIDAD =====
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        
+        if (!currentUser || currentUser.role !== 'admin') {
+            alert('❌ Acceso denegado. No tienes permisos de administrador.');
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Actualizar UI con información del usuario
+        const userDropdown = document.querySelector('.btn-user');
+        if (userDropdown) {
+            userDropdown.innerHTML = `<i class="fas fa-user-circle me-2"></i>${currentUser.username}`;
+        }
+        
+        const userDetails = document.querySelector('.user-details strong');
+        if (userDetails) {
+            userDetails.textContent = currentUser.username;
+        }
+    });
+    </script>
+</head>
+<body class="admin-body">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="company-brand">
+                <i class="fas fa-satellite-dish brand-icon"></i>
+                <div class="brand-text">
+                    <h3>CyberVision</h3>
+                    <span>Holding Admin</span>
+                </div>
+            </div>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="#dashboard" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#empresas" class="nav-link">
+                    <i class="fas fa-building"></i>
+                    <span>Empresas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#vendedores" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Vendedores</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#asesores" class="nav-link">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Asesores</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#paises" class="nav-link">
+                    <i class="fas fa-globe-americas"></i>
+                    <span>Países</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#reportes" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="user-details">
+                    <strong>Administrador</strong>
+                    <small>Sistema Holding</small>
+                </div>
+            </div>
+            <a href="index.html" class="logout-btn" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="content-header">
+            <div class="header-left">
+                <button class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="contentTitle">Dashboard Principal</h1>
+            </div>
+            <div class="header-right">
+                <div class="header-actions">
+                    <button class="btn btn-warning btn-sm" onclick="diagnosticarSistema()">
+                        <i class="fas fa-bug me-2"></i>Diagnóstico
+                    </button>
+                    <button class="btn btn-notification">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-user dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-2"></i>
+                            Admin User
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configuración</a></li>
+                            <li><a class="dropdown-item" href="#" id="logoutDropdown"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <section class="content-grid" id="mainContent">
+            <!-- El contenido se carga dinámicamente aquí -->
+            
+            <!-- Sección Gestión de Países -->
+            <div class="content-section" id="paisesSection" style="display: none;">
+                <div class="section-header">
+                    <h2>Gestión de Países</h2>
+                    <div class="section-controls">
+                        <div class="search-container">
+                            <input type="text" class="form-control" id="searchPaises" placeholder="Buscar países...">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button class="btn btn-primary" onclick="window.advancedCRUD.nuevoPais()">
+                            <i class="fas fa-plus"></i> Nuevo País
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tabla de Países -->
+                <div class="table-container">
+                    <table class="table table-dark table-hover" id="tablaPaises">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Código ISO</th>
+                                <th>Capital</th>
+                                <th>Continente</th>
+                                <th>Moneda</th>
+                                <th>Empresas</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaPaisesBody">
+                            <!-- Los datos se cargan dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Paginación -->
+                <nav aria-label="Paginación de países">
+                    <ul class="pagination justify-content-center" id="paginacionPaises">
+                        <!-- La paginación se genera dinámicamente -->
+                    </ul>
+                </nav>
+                
+                <!-- Información de la tabla -->
+                <div class="table-info">
+                    <span id="infoPaises">Mostrando 0 - 0 de 0 países</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para Crear/Editar Empresa -->
+    <div class="modal fade" id="empresaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content cyber-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="empresaModalTitle">Nueva Empresa</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="empresaForm">
+                        <input type="hidden" id="empresaId">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="empresaNombre" class="form-label">Nombre de la Empresa *</label>
+                                <input type="text" class="form-control" id="empresaNombre" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="empresaPais" class="form-label">País de Sede *</label>
+                                <select class="form-select" id="empresaPais" required>
+                                    <option value="">Seleccionar país...</option>
+                                    <option value="España">España</option>
+                                    <option value="México">México</option>
+                                    <option value="Argentina">Argentina</option>
+                                    <option value="Colombia">Colombia</option>
+                                    <option value="Chile">Chile</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="empresaCiudad" class="form-label">Ciudad de Sede</label>
+                                <input type="text" class="form-control" id="empresaCiudad">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="empresaArea" class="form-label">Área de Mercado *</label>
+                                <select class="form-select" id="empresaArea" required>
+                                    <option value="">Seleccionar área...</option>
+                                    <option value="Telecomunicaciones">Telecomunicaciones</option>
+                                    <option value="Entretenimiento">Entretenimiento</option>
+                                    <option value="Streaming">Streaming</option>
+                                    <option value="Tecnología">Tecnología</option>
+                                    <option value="Medios">Medios</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="empresaFacturacion" class="form-label">Facturación Anual (USD)</label>
+                                <input type="number" class="form-control" id="empresaFacturacion" placeholder="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="empresaVendedores" class="form-label">N° de Vendedores</label>
+                                <input type="number" class="form-control" id="empresaVendedores" value="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="empresaFechaIngreso" class="form-label">Fecha de Ingreso</label>
+                                <input type="date" class="form-control" id="empresaFechaIngreso">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="empresaEstado" class="form-label">Estado</label>
+                                <select class="form-select" id="empresaEstado">
+                                    <option value="Activa">Activa</option>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Inactiva">Inactiva</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="empresaDescripcion" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="empresaDescripcion" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarEmpresa()">Guardar Empresa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/models.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/holding-api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/admin-modals.js"></script>
+    <script src="js/admin-crud-advanced.js"></script>
+    <script src="js/vendedor-crud.js"></script>
+    
+    <script>
+    // ===== GESTIÓN DE EMPRESAS - FUNCIONES GLOBALES =====
+    let empresas = JSON.parse(localStorage.getItem('empresas')) || [
+        {
+            id: 1,
+            nombre: "CyberTel S.A.",
+            pais: "España",
+            ciudad: "Madrid",
+            area: "Telecomunicaciones",
+            estado: "Activa",
+            facturacion: 12500000,
+            vendedores: 450,
+            fechaIngreso: "2023-01-15",
+            descripcion: "Empresa líder en telecomunicaciones"
+        },
+        {
+            id: 2,
+            nombre: "Vision Media Group",
+            pais: "México", 
+            ciudad: "Ciudad de México",
+            area: "Entretenimiento",
+            estado: "Activa",
+            facturacion: 8900000,
+            vendedores: 320,
+            fechaIngreso: "2023-03-22",
+            descripcion: "Grupo de entretenimiento y medios"
+        },
+        {
+            id: 3,
+            nombre: "NetStream Argentina",
+            pais: "Argentina",
+            ciudad: "Buenos Aires",
+            area: "Streaming",
+            estado: "Pendiente", 
+            facturacion: 0,
+            vendedores: 0,
+            fechaIngreso: "2024-01-10",
+            descripcion: "Plataforma de streaming emergente"
+        }
+    ];
+
+    // Función para cargar tabla de empresas
+    function cargarTablaEmpresas() {
+        const tbody = document.getElementById('empresasTableBody');
+        if (!tbody) return;
+        
+        if (empresas.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="fas fa-building fa-2x mb-3 d-block"></i>
+                        No hay empresas registradas
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = empresas.map(empresa => `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="item-icon empresa me-3">
+                            <i class="fas fa-${getEmpresaIcon(empresa.area)}"></i>
+                        </div>
+                        <div>
+                            <strong>${empresa.nombre}</strong>
+                            ${empresa.descripcion ? `<br><small class="text-muted">${empresa.descripcion}</small>` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td>${empresa.pais}</td>
+                <td>${empresa.area}</td>
+                <td>${empresa.facturacion ? `$${(empresa.facturacion / 1000000).toFixed(1)}M` : '-'}</td>
+                <td>${empresa.vendedores}</td>
+                <td>
+                    <span class="badge ${getEstadoBadgeClass(empresa.estado)}">
+                        ${empresa.estado}
+                    </span>
+                </td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarEmpresa(${empresa.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarEmpresa(${empresa.id})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function getEmpresaIcon(area) {
+        const icons = {
+            'Telecomunicaciones': 'satellite',
+            'Entretenimiento': 'tv',
+            'Streaming': 'broadcast-tower',
+            'Tecnología': 'microchip',
+            'Medios': 'newspaper'
+        };
+        return icons[area] || 'building';
+    }
+
+    function getEstadoBadgeClass(estado) {
+        const clases = {
+            'Activa': 'bg-success',
+            'Pendiente': 'bg-warning',
+            'Inactiva': 'bg-secondary'
+        };
+        return clases[estado] || 'bg-secondary';
+    }
+
+    // Funciones CRUD para empresas
+    function nuevaEmpresa() {
+        console.log('➕ Creando nueva empresa...');
+        document.getElementById('empresaModalTitle').textContent = 'Nueva Empresa';
+        document.getElementById('empresaForm').reset();
+        document.getElementById('empresaId').value = '';
+        
+        // Establecer fecha actual por defecto
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('empresaFechaIngreso').value = today;
+        
+        const modal = new bootstrap.Modal(document.getElementById('empresaModal'));
+        modal.show();
+    }
+
+    function editarEmpresa(id) {
+        console.log('✏️ Editando empresa ID:', id);
+        const empresa = empresas.find(e => e.id === id);
+        
+        if (!empresa) {
+            alert('Empresa no encontrada');
+            return;
+        }
+        
+        document.getElementById('empresaModalTitle').textContent = 'Editar Empresa';
+        document.getElementById('empresaId').value = empresa.id;
+        document.getElementById('empresaNombre').value = empresa.nombre || '';
+        document.getElementById('empresaPais').value = empresa.pais || '';
+        document.getElementById('empresaCiudad').value = empresa.ciudad || '';
+        document.getElementById('empresaArea').value = empresa.area || '';
+        document.getElementById('empresaFacturacion').value = empresa.facturacion || '';
+        document.getElementById('empresaVendedores').value = empresa.vendedores || 0;
+        document.getElementById('empresaFechaIngreso').value = empresa.fechaIngreso || '';
+        document.getElementById('empresaEstado').value = empresa.estado || 'Activa';
+        document.getElementById('empresaDescripcion').value = empresa.descripcion || '';
+        
+        const modal = new bootstrap.Modal(document.getElementById('empresaModal'));
+        modal.show();
+    }
+
+    function guardarEmpresa() {
+        console.log('💾 Guardando empresa...');
+        const form = document.getElementById('empresaForm');
+        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const empresaData = {
+            id: document.getElementById('empresaId').value ? parseInt(document.getElementById('empresaId').value) : Date.now(),
+            nombre: document.getElementById('empresaNombre').value,
+            pais: document.getElementById('empresaPais').value,
+            ciudad: document.getElementById('empresaCiudad').value,
+            area: document.getElementById('empresaArea').value,
+            facturacion: parseInt(document.getElementById('empresaFacturacion').value) || 0,
+            vendedores: parseInt(document.getElementById('empresaVendedores').value) || 0,
+            fechaIngreso: document.getElementById('empresaFechaIngreso').value,
+            estado: document.getElementById('empresaEstado').value,
+            descripcion: document.getElementById('empresaDescripcion').value
+        };
+        
+        const empresaId = document.getElementById('empresaId').value;
+        
+        if (empresaId) {
+            // Editar empresa existente
+            const index = empresas.findIndex(e => e.id == empresaId);
+            if (index !== -1) {
+                empresas[index] = { ...empresas[index], ...empresaData };
+                console.log('✅ Empresa editada:', empresaData.nombre);
+            }
+        } else {
+            // Nueva empresa
+            empresas.push(empresaData);
+            console.log('✅ Nueva empresa creada:', empresaData.nombre);
+        }
+        
+        // Guardar en localStorage
+        localStorage.setItem('empresas', JSON.stringify(empresas));
+        
+        // Cerrar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+        modal.hide();
+        
+        // Recargar tabla
+        cargarTablaEmpresas();
+        
+        alert('✅ Empresa guardada correctamente');
+    }
+
+    function eliminarEmpresa(id) {
+        if (!confirm('¿Estás seguro de que quieres eliminar esta empresa?')) {
+            return;
+        }
+        
+        empresas = empresas.filter(e => e.id !== id);
+        localStorage.setItem('empresas', JSON.stringify(empresas));
+        cargarTablaEmpresas();
+        
+        alert('✅ Empresa eliminada correctamente');
+    }
+
+    // ===== INICIALIZACIÓN COMPLETA MEJORADA =====
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("🚀 Inicializando sistema CyberVision Admin...");
+        
+        // Forzar inicialización completa
+        setTimeout(() => {
+            inicializarSistemaCompleto();
+        }, 500);
+    });
+
+    function inicializarSistemaCompleto() {
+        console.log("🔄 Inicializando sistema completo...");
+        
+        // Verificar que todas las funciones estén disponibles
+        const funcionesRequeridas = [
+            'nuevoVendedor', 'nuevoAsesor', 'nuevoPais',
+            'cargarTablaVendedores', 'cargarTablaAsesores', 'cargarTablaPaises'
+        ];
+        
+        funcionesRequeridas.forEach(func => {
+            console.log(`🔍 ${func}:`, typeof window[func]);
+        });
+        
+        // Inicializar modelos si existen
+        if (typeof inicializarModelos === 'function') {
+            inicializarModelos();
+            console.log("✅ Modelos inicializados");
+        }
+        
+        // Inicializar modales
+        if (typeof inicializarModales === 'function') {
+            inicializarModales();
+            console.log("✅ Modales inicializados");
+        } else {
+            console.warn("⚠️ inicializarModales no disponible");
+        }
+        
+        // Cargar datos iniciales
+        cargarDatosIniciales();
+        
+        // Configurar logout
+        const logoutButtons = document.querySelectorAll('#logoutBtn, #logoutDropdown');
+        logoutButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                logout();
+            });
+        });
+
+        // Cargar dashboard por defecto
+        if (typeof loadDashboardContent === 'function') {
+            loadDashboardContent();
+        }
+
+        // Verificar funciones de emergencia
+        setTimeout(verificarFuncionesCRUD, 1000);
+        
+        // Inicializar navegación
+        inicializarNavegacion();
+    }
+
+    // ===== NAVEGACIÓN DEL DASHBOARD =====
+    function inicializarNavegacion() {
+        console.log("🧭 Inicializando navegación...");
+        
+        // Obtener todos los enlaces de navegación
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const target = this.getAttribute('href');
+                console.log(`📍 Navegando a: ${target}`);
+                
+                // Remover clase active de todos los enlaces
+                navLinks.forEach(l => l.classList.remove('active'));
+                
+                // Agregar clase active al enlace clickeado
+                this.classList.add('active');
+                
+                // Mostrar la sección correspondiente
+                mostrarSeccion(target);
+            });
+        });
+        
+        console.log("✅ Navegación inicializada");
+    }
+
+    function mostrarSeccion(seccionId) {
+        console.log(`🔄 Mostrando sección: ${seccionId}`);
+        
+        // Ocultar todas las secciones
+        const secciones = document.querySelectorAll('.content-section');
+        secciones.forEach(seccion => {
+            seccion.style.display = 'none';
+        });
+        
+        // Mostrar la sección seleccionada
+        switch(seccionId) {
+            case '#dashboard':
+                // Cargar contenido del dashboard
+                cargarDashboard();
+                break;
+                
+            case '#empresas':
+                // Cargar gestión de empresas
+                cargarEmpresas();
+                break;
+                
+            case '#vendedores':
+                // Cargar gestión de vendedores
+                cargarVendedores();
+                break;
+                
+            case '#asesores':
+                // Cargar gestión de asesores
+                cargarAsesores();
+                break;
+                
+            case '#paises':
+                // Mostrar y cargar gestión de países
+                const paisesSection = document.getElementById('paisesSection');
+                if (paisesSection) {
+                    paisesSection.style.display = 'block';
+                    
+                    // Inicializar CRUD de países si está disponible
+                    if (window.advancedCRUD) {
+                        console.log("🌍 Cargando datos de países...");
+                        window.advancedCRUD.cargarTablaPaises();
+                        
+                        // Configurar búsqueda
+                        const searchInput = document.getElementById('searchPaises');
+                        if (searchInput) {
+                            searchInput.addEventListener('input', function() {
+                                window.advancedCRUD.buscarPaises(this.value);
+                            });
+                        }
+                    } else {
+                        console.warn("⚠️ AdvancedCRUD no disponible para países");
+                    }
+                }
+                break;
+                
+            case '#reportes':
+                // Cargar reportes
+                cargarReportes();
+                break;
+                
+            default:
+                console.warn(`⚠️ Sección no encontrada: ${seccionId}`);
+                cargarDashboard();
+        }
+    }
+
+    function cargarDashboard() {
+        console.log("🏠 Cargando dashboard principal...");
+        // Aquí iría el contenido del dashboard
+    }
+
+    function cargarEmpresas() {
+        console.log("🏢 Cargando gestión de empresas...");
+        // Aquí iría el contenido de empresas
+    }
+
+    function cargarVendedores() {
+        console.log("👨‍💼 Cargando gestión de vendedores...");
+        // Aquí iría el contenido de vendedores
+    }
+
+    function cargarAsesores() {
+        console.log("🧑‍💼 Cargando gestión de asesores...");
+        // Aquí iría el contenido de asesores
+    }
+
+    function cargarReportes() {
+        console.log("📊 Cargando reportes...");
+        // Aquí iría el contenido de reportes
+    }
+
+    function cargarDatosIniciales() {
+        console.log("📊 Cargando datos iniciales...");
+        
+        // Cargar tablas si las funciones existen
+        setTimeout(() => {
+            if (typeof cargarTablaVendedores === 'function') {
+                cargarTablaVendedores();
+                console.log("✅ Tabla vendedores cargada");
+            } else {
+                console.error("❌ cargarTablaVendedores no disponible");
+            }
+            
+            if (typeof cargarTablaAsesores === 'function') {
+                cargarTablaAsesores();
+                console.log("✅ Tabla asesores cargada");
+            }
+            
+            if (typeof cargarTablaPaises === 'function') {
+                cargarTablaPaises();
+                console.log("✅ Tabla países cargada");
+            }
+            
+            // Cargar estadísticas
+            if (typeof storageService !== 'undefined') {
+                const stats = storageService.obtenerEstadisticas();
+                console.log('📊 Estadísticas del sistema:', stats);
+                actualizarEstadisticasDashboard(stats);
+            }
+        }, 1000);
+    }
+
+    function actualizarEstadisticasDashboard(stats) {
+        const statElements = {
+            'empresas-count': stats.totalEmpresas,
+            'vendedores-count': stats.totalVendedores, 
+            'asesores-count': stats.totalAsesores,
+            'facturacion-total': `$${(stats.facturacionTotal / 1000000).toFixed(1)}M`
+        };
+        
+        Object.keys(statElements).forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = statElements[id];
+            }
+        });
+    }
+
+    // ===== FUNCIONES DE EMERGENCIA =====
+    function verificarFuncionesCRUD() {
+        if (typeof nuevoVendedor === 'undefined') {
+            console.warn("⚠️ nuevoVendedor no disponible, creando función de emergencia");
+            window.nuevoVendedor = function() {
+                alert('➕ Función de nuevo vendedor - En desarrollo');
+                console.log('Abriendo modal de nuevo vendedor...');
+            };
+        }
+        
+        if (typeof nuevoAsesor === 'undefined') {
+            console.warn("⚠️ nuevoAsesor no disponible, creando función de emergencia");
+            window.nuevoAsesor = function() {
+                alert('🎓 Función de nuevo asesor - En desarrollo');
+                console.log('Abriendo modal de nuevo asesor...');
+            };
+        }
+        
+        if (typeof nuevoPais === 'undefined') {
+            console.warn("⚠️ nuevoPais no disponible, creando función de emergencia");
+            window.nuevoPais = function() {
+                alert('🌍 Función de nuevo país - En desarrollo');
+                console.log('Abriendo modal de nuevo país...');
+            };
+        }
+    }
+
+    // ===== FUNCIÓN DE DIAGNÓSTICO =====
+    async function diagnosticarSistema() {
+        console.clear();
+        console.log("🔧 DIAGNÓSTICO DEL SISTEMA - INTEGRACIÓN API");
+        console.log("============================================");
+        
+        // Verificar APIs disponibles
+        const servicios = {
+            'holdingAPI': typeof window.holdingAPI,
+            'AuthService': typeof window.AuthService,
+            'storageService': typeof storageService,
+            'nuevoVendedor': typeof nuevoVendedor,
+            'nuevoAsesor': typeof nuevoAsesor,
+            'nuevoPais': typeof nuevoPais
+        };
+        
+        console.table(servicios);
+        
+        // Verificar autenticación
+        if (window.AuthService) {
+            const usuario = window.AuthService.getCurrentUser();
+            console.log('👤 Usuario actual:', usuario);
+            console.log('🔐 Token válido:', window.AuthService.isAuthenticated());
+        }
+        
+        // Probar conexión con backend
+        if (window.holdingAPI) {
+            try {
+                console.log('🔄 Probando conexión con backend...');
+                const paises = await window.holdingAPI.getPaises();
+                console.log('✅ Backend conectado - Países:', paises.length);
+                
+                // Mostrar estadísticas del backend
+                const vendedores = await window.holdingAPI.getVendedores();
+                const asesores = await window.holdingAPI.getAsesores();
+                const empresas = await window.holdingAPI.getEmpresas();
+                
+                console.log('📊 Datos del backend:');
+                console.log(`- Países: ${paises.length}`);
+                console.log(`- Vendedores: ${vendedores.length}`);
+                console.log(`- Asesores: ${asesores.length}`);
+                console.log(`- Empresas: ${empresas.length}`);
+                
+            } catch (error) {
+                console.error('❌ Error conectando con backend:', error);
+            }
+        }
+        
+        // Verificar localStorage (datos locales antiguos)
+        console.log('💾 Datos locales (localStorage):');
+        const modelos = ['empresas', 'vendedores', 'asesores', 'paises', 'areasMercado', 'captaciones'];
+        modelos.forEach(modelo => {
+            const datos = localStorage.getItem(modelo);
+            console.log(`- ${modelo}:`, datos ? JSON.parse(datos).length + ' registros' : 'No existe');
+        });
+        
+        alert('✅ Revisa la consola para el diagnóstico completo');
+    }
+
+    function logout() {
+        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            // Usar el AuthService para logout
+            if (window.AuthService) {
+                window.AuthService.logout();
+            } else {
+                // Fallback si AuthService no está disponible
+                sessionStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
+        }
+    }
+    </script>
+</body>
+</html>

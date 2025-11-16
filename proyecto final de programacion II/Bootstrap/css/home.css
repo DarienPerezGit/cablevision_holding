@@ -1,0 +1,202 @@
+/* ===== ESTILOS PÁGINA INICIAL CYBERVISION ===== */
+/* home.css - Usando la misma paleta de dashboard.css */
+
+.home-body {
+    background: linear-gradient(135deg, var(--cyber-dark) 0%, var(--cyber-darker) 100%);
+    color: var(--text-light);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.1) 0%, rgba(51, 153, 255, 0.05) 100%);
+    padding: 120px 0 100px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-blue);
+    margin-top: 80px;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--text-light), var(--cyber-blue-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.3rem;
+    color: var(--text-gray);
+    margin-bottom: 2rem;
+}
+
+.section-padding {
+    padding: 80px 0;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 3rem;
+    text-align: center;
+    color: var(--text-light);
+}
+
+.feature-card {
+    background: var(--cyber-darker);
+    border: 1px solid var(--border-blue);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--cyber-blue);
+    box-shadow: 0 15px 30px rgba(0, 102, 255, 0.2);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-blue-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.company-carousel {
+    background: var(--cyber-darker);
+    border: 1px solid var(--border-blue);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.carousel-item img {
+    height: 400px;
+    object-fit: cover;
+}
+
+.carousel-caption {
+    background: rgba(10, 10, 10, 0.8);
+    border-radius: 10px;
+    padding: 1.5rem;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+}
+
+.stats-section {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.1) 0%, rgba(51, 153, 255, 0.05) 100%);
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--cyber-blue);
+    margin-bottom: 0.5rem;
+}
+
+.cta-section {
+    background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-blue-dark));
+    padding: 100px 0;
+    text-align: center;
+}
+
+.btn-login-home {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid white;
+    color: white;
+    padding: 1rem 3rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-login-home:hover {
+    background: white;
+    color: var(--cyber-blue);
+    transform: translateY(-3px);
+}
+
+.footer-home {
+    background: var(--cyber-darker);
+    border-top: 1px solid var(--border-blue);
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.nav-home {
+    background: var(--cyber-darker);
+    border-bottom: 1px solid var(--border-blue);
+    padding: 1rem 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-light);
+    text-decoration: none;
+}
+
+.nav-brand i {
+    color: var(--cyber-blue);
+    margin-right: 0.5rem;
+}
+.text-muted {
+    color: #a0a0a0 !important; /* Un gris más claro */
+}
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section {
+        padding: 100px 0 80px;
+        margin-top: 70px;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .carousel-item img {
+        height: 300px;
+    }
+    
+    .btn-login-home {
+        padding: 0.8rem 2rem;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .section-padding {
+        padding: 60px 0;
+    }
+    
+    .feature-card {
+        padding: 1.5rem;
+    }
+}

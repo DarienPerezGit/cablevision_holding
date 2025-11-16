@@ -1,0 +1,188 @@
+/* ===== VARIABLES CYBERVISION ===== */
+:root {
+    --cyber-blue: #0066ff;
+    --cyber-blue-light: #3399ff;
+    --cyber-blue-dark: #0044cc;
+    --cyber-dark: #0a0a0a;
+    --cyber-darker: #111111;
+    --cyber-gray: #1a1a1a;
+    --text-light: #ffffff;
+    --text-gray: #cccccc;
+    --text-muted: #888888;
+    --border-blue: rgba(0, 102, 255, 0.3);
+}
+
+/* ===== ESTILOS GENERALES ===== */
+.login-body {
+    background: linear-gradient(135deg, var(--cyber-dark) 0%, var(--cyber-darker) 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+}
+
+/* ===== TARJETA LOGIN ===== */
+.login-container {
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-card {
+    background: var(--cyber-darker);
+    padding: 2.5rem;
+    border-radius: 20px;
+    border: 1px solid var(--border-blue);
+    box-shadow: 0 15px 35px rgba(0, 102, 255, 0.15);
+    backdrop-filter: blur(10px);
+}
+
+/* ===== HEADER LOGIN ===== */
+.login-header .logo-container {
+    margin-bottom: 1rem;
+}
+
+.logo-icon {
+    font-size: 3rem;
+    color: var(--cyber-blue);
+    background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-blue-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.company-name {
+    color: var(--text-light);
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, var(--text-light), var(--cyber-blue-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.company-subtitle {
+    color: var(--cyber-blue);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.system-description {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+}
+
+/* ===== FORMULARIO ===== */
+.login-form {
+    margin-top: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    color: var(--text-light);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control, .form-select {
+    background: var(--cyber-gray);
+    border: 1px solid var(--border-blue);
+    color: var(--text-light);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--cyber-gray);
+    border-color: var(--cyber-blue);
+    box-shadow: 0 0 0 0.2rem rgba(0, 102, 255, 0.25);
+    color: var(--text-light);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+/* ===== BOTÓN LOGIN ===== */
+.login-btn {
+    background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-blue-dark));
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    width: 100%;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 102, 255, 0.3);
+}
+
+/* ===== FOOTER LOGIN ===== */
+.login-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-blue);
+}
+
+.security-notice {
+    color: var(--text-gray);
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.version {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .company-name {
+        font-size: 1.5rem;
+    }
+    
+    .logo-icon {
+        font-size: 2.5rem;
+    }
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* ===== ESTADOS DE VALIDACIÓN ===== */
+.form-control:invalid {
+    border-color: rgba(255, 51, 51, 0.3);
+}
+
+.form-control:valid {
+    border-color: rgba(0, 204, 102, 0.3);
+}
