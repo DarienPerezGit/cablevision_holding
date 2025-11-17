@@ -2,12 +2,15 @@ package com.holding.cablevision.controller;
 
 import com.holding.cablevision.model.UsuarioAuth;
 import com.holding.cablevision.repository.UsuarioAuthRepository;
+import com.holding.cablevision.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -17,22 +20,31 @@ public class AuthController {
     @Autowired
     private UsuarioAuthRepository usuarioAuthRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("username");
         String password = credentials.get("password");
         
         try {
-            // Buscar usuario por username y password
-            var usuario = usuarioAuthRepository.findByUsernameAndPassword(username, password);
+            // Buscar usuario por username
+            Optional<UsuarioAuth> usuario = usuarioAuthRepository.findByUsername(username);
             
-            if (usuario.isPresent()) {
+            if (usuario.isPresent() && passwordEncoder.matches(password, usuario.get().getPassword())) {
                 UsuarioAuth user = usuario.get();
+                
+                // Generar token JWT
+                String token = jwtTokenProvider.generateToken(user);
                 
                 // Preparar respuesta con datos del usuario
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", true);
-                response.put("token", "demo-token-" + user.getId()); // Token simple para demo
+                response.put("token", token);
                 
                 Map<String, Object> userInfo = new HashMap<>();
                 userInfo.put("id", user.getId());
@@ -69,7 +81,7 @@ public class AuthController {
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
-            errorResponse.put("message", "Error interno del servidor");
+            errorResponse.put("message", "Error interno del servidor: " + e.getMessage());
             
             return ResponseEntity.status(500).body(errorResponse);
         }

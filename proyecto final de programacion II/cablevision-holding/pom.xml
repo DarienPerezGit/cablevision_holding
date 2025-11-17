@@ -28,6 +28,14 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version>
         </dependency>
+
+            <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.1</version>
+        </dependency>
+
+        
         <!-- Spring Boot Starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -71,6 +79,13 @@
         <dependency>
         <groupId>com.zaxxer</groupId>
         <artifactId>HikariCP</artifactId>
+        </dependency>
+
+        <!-- dotenv-java -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
         </dependency>
         
         <!-- Testing -->

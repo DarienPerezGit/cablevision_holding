@@ -1,0 +1,16 @@
+# Maven build folders
+target/
+
+# Java outputs
+*.class
+*.jar
+
+# H2 database files
+*.mv.db
+*.trace.db
+
+# Logs
+*.log
+
+# VS Code config
+.vscode/
